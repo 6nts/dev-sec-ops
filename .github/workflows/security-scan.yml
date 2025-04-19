@@ -20,7 +20,10 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --tag go-microservice:ci .
+            -f microservice/Dockerfile \
+            -t go-microservice:ci \
+            microservice
+
 
       - name: Save image to TAR
         run: |
