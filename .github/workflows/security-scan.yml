@@ -1,5 +1,4 @@
-# .github/workflows/security-scan.yml
-name: Build & Security Scan
+name: Security Scan
 
 on:
   push:
@@ -7,23 +6,23 @@ on:
   pull_request:
 
 jobs:
-  build-and-scan:
+  scan:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build Docker image
+      - name: Build image for scan
         run: |
           docker build \
             -f microservice/Dockerfile \
-            -t go-microservice:ci \
+            -t go-microservice:scan \
             microservice
 
       - name: Scan image with Trivy Action
-        uses: aquasecurity/trivy-action@v0.8.0
+        uses: aquasecurity/trivy-action@v0.30.0
         with:
           image-ref: go-microservice:ci
           format: table
-          exit-code: 1         # falla si hay HIGH/CRITICAL
+          exit-code: 1
           sev-list: CRITICAL,HIGH
+
