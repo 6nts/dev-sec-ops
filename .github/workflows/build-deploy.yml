@@ -1,0 +1,39 @@
+name: Build & Deploy
+
+on:
+  workflow_run:
+    workflows: ["Security Scan"]
+    types:
+      - completed
+
+jobs:
+  build-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f microservice/Dockerfile \
+            -t go-microservice:ci \
+            microservice
+
+      - name: Push image to registry
+        run: |
+          echo "${{ secrets.REGISTRY_TOKEN }}" \
+            | docker login myregistry.com -u ${{ secrets.REGISTRY_USER }} --password-stdin
+          docker tag go-microservice:ci myregistry.com/myrepo/go-microservice:${{ github.sha }}
+          docker push myregistry.com/myrepo/go-microservice:${{ github.sha }}
+
+      - name: Deploy to EKS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/DeployRole
+          aws-region: us-east-1
+
+      - name: kubectl apply
+        run: |
+          kubectl set image deployment/my-deployment my-container=myregistry.com/myrepo/go-microservice:${{ github.sha }}
