@@ -19,7 +19,7 @@ jobs:
             microservice
 
       - name: Scan image with Trivy Action
-        uses: aquasecurity/trivy-action@v0.30.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: go-microservice:ci
           format: table
