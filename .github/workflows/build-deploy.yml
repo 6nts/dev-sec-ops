@@ -1,39 +1,46 @@
-name: Build & Deploy
+# .github/workflows/security-scan.yml
+name: Security Scan
 
 on:
-  workflow_run:
-    workflows: ["Security Scan"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
+  pull_request:
 
 jobs:
-  build-deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  scan:
     runs-on: ubuntu-latest
-
+    outputs:
+      image-tag: ${{ steps.tag.outputs.image-tag }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Build Docker image
+      - name: Compute image tag
+        id: tag
+        run: |
+          echo "::set-output name=image-tag::go-microservice:${{ github.sha }}"
+
+      - name: Build image for scan
         run: |
           docker build \
             -f microservice/Dockerfile \
-            -t go-microservice:ci \
+            -t ${{ steps.tag.outputs.image-tag }} \
             microservice
 
-      - name: Push image to registry
-        run: |
-          echo "${{ secrets.REGISTRY_TOKEN }}" \
-            | docker login myregistry.com -u ${{ secrets.REGISTRY_USER }} --password-stdin
-          docker tag go-microservice:ci myregistry.com/myrepo/go-microservice:${{ github.sha }}
-          docker push myregistry.com/myrepo/go-microservice:${{ github.sha }}
-
-      - name: Deploy to EKS
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/DeployRole
-          aws-region: us-east-1
+          image-ref: ${{ steps.tag.outputs.image-tag }}
+          format: table
+          exit-code: 1
+          sev-list: CRITICAL,HIGH
 
-      - name: kubectl apply
+      - name: Export image as TAR
         run: |
-          kubectl set image deployment/my-deployment my-container=myregistry.com/myrepo/go-microservice:${{ github.sha }}
+          docker save ${{ steps.tag.outputs.image-tag }} -o image.tar
+
+      - name: Upload image TAR artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: scanned-image
+          path: image.tar
