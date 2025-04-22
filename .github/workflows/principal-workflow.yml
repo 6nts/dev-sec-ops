@@ -3,7 +3,8 @@ name: Principal Workflow
 on:
   push:
     branches: [main]
-
+  workflow_dispatch: 
+    
 jobs:
   scan:
     uses: 6nts/shared-workflows/.github/workflows/security-scan.yml@main
