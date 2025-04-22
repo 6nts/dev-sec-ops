@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func HelloHandler(c *gin.Context) {
@@ -15,3 +16,6 @@ func IndexHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", nil)
 }
 
+func LogIn(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", nil)
+}
