@@ -1,8 +1,6 @@
 module ms-mantenedor-clientes
 
-go 1.23.8
-
-toolchain go1.23.8
+go 1.23.3
 
 require github.com/gin-gonic/gin v1.10.0
 
