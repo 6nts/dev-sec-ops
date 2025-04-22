@@ -6,8 +6,8 @@ on:
 
 jobs:
   scan:
-    uses: ./shared-workflows/.github/workflows/security-scan.yml
+    uses: ./shared-workflows/.github/workflows/security-scan.yml@main
 
   build:
     needs: scan
-    uses: ./shared-workflows/.github/workflows/go-build.yml
+    uses: ./shared-workflows/.github/workflows/go-build.yml@main
