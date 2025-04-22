@@ -4,10 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch: 
-    
+
 jobs:
   scan:
     uses: 6nts/shared-workflows/.github/workflows/security-scan.yml@main
+    with:
+      scan-path: ./go-ms
 
   build:
     needs: scan
