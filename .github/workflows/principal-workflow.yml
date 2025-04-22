@@ -1,46 +1,13 @@
-# .github/workflows/security-scan.yml
-name: Security Scan
+name: Principal Workflow
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
+    branches: [main]
 
 jobs:
   scan:
-    runs-on: ubuntu-latest
-    outputs:
-      image-tag: ${{ steps.tag.outputs.image-tag }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    uses: ./.github/workflows/security-scan.yml
 
-      - name: Compute image tag
-        id: tag
-        run: |
-          echo "::set-output name=image-tag::go-microservice:${{ github.sha }}"
-
-      - name: Build image for scan
-        run: |
-          docker build \
-            -f microservice/Dockerfile \
-            -t ${{ steps.tag.outputs.image-tag }} \
-            microservice
-
-      - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.tag.outputs.image-tag }}
-          format: table
-          exit-code: 1
-          sev-list: CRITICAL,HIGH
-
-      - name: Export image as TAR
-        run: |
-          docker save ${{ steps.tag.outputs.image-tag }} -o image.tar
-
-      - name: Upload image TAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: scanned-image
-          path: image.tar
+  build:
+    needs: scan
+    uses: ./.github/workflows/go-build.yml

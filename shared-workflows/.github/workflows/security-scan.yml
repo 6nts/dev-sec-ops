@@ -1,0 +1,28 @@
+name: Security Scan
+
+on:
+  workflow_call:
+
+jobs:
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Trivy - Vulnerabilities
+        run: |
+          echo "🔍 Escaneando dependencias y código fuente con Trivy..."
+          trivy fs --exit-code 1 --severity CRITICAL,HIGH ./microservice
+
+      - name: Trivy - Secret scan (informativo)
+        run: |
+          echo "🔐 Buscando secretos..."
+          trivy fs --scanners secret --exit-code 0 --severity CRITICAL,HIGH,MEDIUM,LOW ./microservice
+
+      - name: Trivy - Config scan (informativo)
+        run: |
+          echo "⚙️ Escaneo de configuración insegura..."
+          trivy config --exit-code 0 --severity CRITICAL,HIGH,MEDIUM,LOW ./microservice
