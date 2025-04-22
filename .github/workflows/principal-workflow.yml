@@ -9,12 +9,12 @@ jobs:
   scan:
     uses: 6nts/shared-workflows/.github/workflows/security-scan.yml@main
     with:
-      scan-path: ./go-ms
+      scan-path: .
 
   build:
     needs: scan
     uses: 6nts/shared-workflows/.github/workflows/go-build.yml@main
     with:
-      build-path: ./go-ms
+      build-path: .
   
-      
+
